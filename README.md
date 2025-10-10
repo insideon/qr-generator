@@ -5,15 +5,15 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.2.0-61dafb.svg)](https://reactjs.org/)
 
-식당 사장님들을 위한 Wi-Fi 접속용 QR 코드 생성 서비스입니다. 간단한 정보 입력만으로 QR 코드를 생성하고 Google Drive에 자동으로 저장합니다.
+식당 사장님들을 위한 Wi-Fi 접속용 QR 코드 생성 서비스입니다. 간단한 정보 입력만으로 QR 코드를 생성하고 즉시 다운로드할 수 있습니다. Google Workspace 계정이 있다면 Google Drive에 자동 백업도 가능합니다.
 
 ## 주요 기능
 
 - ✨ 간편한 Wi-Fi QR 코드 생성 (600×600 PNG)
 - 🔒 WPA/WPA2 보안 지원
 - 📱 즉시 다운로드 가능
-- ☁️ Google Drive 자동 백업
-- 🚫 로그인/계정 불필요
+- ☁️ Google Drive 자동 백업 (Google Workspace 계정 필요)
+- 🚫 로그인/계정 불필요 (개인 Gmail 사용자도 QR 생성/다운로드 가능)
 - 📲 반응형 웹 디자인
 
 ## 기술 스택
@@ -61,32 +61,66 @@ QR 코드를 Google Drive에 저장하려면 Service Account와 공유 폴더 �
 
 #### 1-2. Google Drive 폴더 설정
 
-✅ **개인 Gmail 계정에서도 작동합니다!** 폴더를 Service Account와 공유하기만 하면 됩니다.
+⚠️ **중요 - Google Drive 제한사항**:
 
-1. **Google Drive에 접속** ([drive.google.com](https://drive.google.com/))
-2. **폴더 생성**:
-   - 우클릭 > 새 폴더 > 이름: "QR_Codes" (또는 원하는 이름)
-3. **Service Account와 폴더 공유**:
-   - 생성한 폴더 우클릭 > 공유 클릭
-   - 사용자 추가: Service Account 이메일 입력 (service-account.json의 `client_email` 값)
-   - 권한: **편집자** 선택
-   - "완료" 클릭
-   - 💡 팁: 서버 시작 시 콘솔에 Service Account 이메일이 표시됩니다
-4. **폴더 ID 복사**:
-   - 폴더를 더블클릭하여 열기
-   - 브라우저 주소창의 URL 확인
-   - 예: `https://drive.google.com/drive/folders/1abc123def456ghi789jkl`
-   - **1abc123def456ghi789jkl** 부분이 폴더 ID입니다
-5. **환경 변수 설정**:
-   - `backend/env.example` 파일을 복사하여 `.env` 파일 생성
+**Service Account는 개인 Gmail 계정의 드라이브에 파일을 생성할 수 없습니다.**
+
+이것은 Google의 정책이며, 다음 두 가지 방법만 가능합니다:
+
+1. **Google Workspace 계정** 사용 (유료)
+   - Shared Drive (공유 드라이브) 기능 이용
+   - Service Account가 파일 생성 가능
+
+2. **OAuth 2.0 인증** 사용
+   - 사용자가 Google 로그인하여 권한 부여
+   - 로그인 필요 (현재 프로젝트의 "무계정" 요구사항과 맞지 않음)
+
+**현재 상태**: QR 코드 생성 및 다운로드는 정상 작동하며, Google Drive 저장 기능은 위 조건 충족 시 사용 가능합니다.
+
+---
+
+#### Google Workspace 계정용 설정 (Google Drive 저장 가능)
+
+Google Workspace 계정을 사용 중이라면 다음 단계를 따라 Shared Drive를 설정하세요:
+
+1. **Shared Drive (공유 드라이브) 생성**:
+   - Google Drive 좌측 메뉴 > 공유 드라이브 > 새로 만들기
+   - 이름: "QR_Codes"
+
+2. **Service Account 멤버 추가**:
+   - 공유 드라이브 우클릭 > 멤버 관리
+   - 멤버 추가: Service Account 이메일 입력
+   - 권한: **콘텐츠 관리자** 또는 **관리자** 선택
+
+3. **공유 드라이브 ID 복사**:
+   - 공유 드라이브를 열고 URL에서 ID 복사
+   - 예: `https://drive.google.com/drive/folders/0Axxx...`
+
+4. **환경 변수 설정**:
    ```bash
    cd backend
    cp env.example .env
+   # .env 파일 편집
    ```
-   - `.env` 파일을 열어서 폴더 ID 입력
+   `.env` 파일:
    ```
-   GOOGLE_DRIVE_FOLDER_ID=1abc123def456ghi789jkl
+   GOOGLE_DRIVE_FOLDER_ID=공유드라이브ID
    ```
+
+---
+
+#### 개인 Gmail 계정용 (Drive 저장 불가 - 대안 제공)
+
+개인 Gmail 계정을 사용 중이라면 Google Drive 저장은 작동하지 않습니다.
+
+**현재 사용 가능한 기능**:
+- ✅ Wi-Fi QR 코드 생성
+- ✅ 화면에서 미리보기
+- ✅ 즉시 다운로드
+
+**Google Drive 저장을 원한다면**:
+- Google Workspace 계정으로 업그레이드
+- 또는 OAuth 2.0 로그인 방식으로 개발 요청 (Issue 등록)
 
 ### 2. 백엔드 실행
 
@@ -134,7 +168,7 @@ npm run dev
 6. 생성된 QR 코드 미리보기 확인
 7. "다운로드" 버튼으로 이미지 저장
 
-생성된 QR 코드는 자동으로 Google Drive에 `{매장명}_{날짜시간}.png` 형식으로 저장됩니다.
+생성된 QR 코드는 즉시 다운로드할 수 있으며, Google Workspace 계정에서 Shared Drive를 설정한 경우 자동으로 `{매장명}_{날짜시간}.png` 형식으로 저장됩니다.
 
 ## 프로젝트 구조
 
@@ -186,10 +220,20 @@ Wi-Fi QR 코드를 생성합니다.
 
 ## 주의사항
 
-- Service Account 키 파일(`service-account.json`)은 반드시 보안에 유의하여 관리하세요
-- `.gitignore`에 `service-account.json`이 포함되어 있는지 확인하세요
+### 보안
+- ⚠️ Service Account 키 파일(`service-account.json`)은 민감한 정보입니다
+- `.gitignore`에 이미 포함되어 있으니 Git 커밋 시 자동 제외됩니다
+- 절대로 공개 저장소에 업로드하지 마세요
+
+### Google Drive 제한사항
+- **개인 Gmail 계정**: Service Account로 파일 생성 불가 (Google 정책)
+  - QR 생성 및 다운로드는 정상 작동
+  - Google Drive 저장 기능만 사용 불가
+- **Google Workspace 계정**: Shared Drive에서 정상 작동
+
+### 기타
 - 생성된 QR 코드는 페이지 이탈 후 서비스 내에서 재조회할 수 없습니다
-- Google Drive에는 파일이 계속 보존됩니다
+- Google Drive에 저장된 파일은 계속 보존됩니다 (Workspace 계정 사용 시)
 
 ## 버전 히스토리
 
