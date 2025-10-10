@@ -13,6 +13,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
+  const [responseMessage, setResponseMessage] = useState('')
 
   const handleChange = (e) => {
     setFormData({
@@ -31,6 +32,7 @@ function App() {
     try {
       const response = await axios.post('/api/generate-qr', formData)
       setQrImage(`data:image/png;base64,${response.data.image_base64}`)
+      setResponseMessage(response.data.message)
       setSuccess(true)
     } catch (err) {
       const errorDetail = err.response?.data?.detail
@@ -139,10 +141,9 @@ function App() {
 
       {qrImage && (
         <div className="result-container">
-          {success && (
+          {success && qrImage && (
             <div className="success-message">
-              ✅ QR 코드가 성공적으로 생성되었습니다!<br/>
-              📁 Google Drive에 저장되었습니다.
+              {responseMessage || "✅ QR 코드 생성 성공!"}
             </div>
           )}
 

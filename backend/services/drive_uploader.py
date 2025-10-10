@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config import GOOGLE_DRIVE_FOLDER_ID, SERVICE_ACCOUNT_EMAIL
 
 
-SCOPES = ['https://www.googleapis.com/auth/drive.file']
+SCOPES = ['https://www.googleapis.com/auth/drive']
 CREDENTIALS_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
     'credentials',
@@ -58,24 +58,55 @@ def upload_to_drive(image_buffer: BytesIO, store_name: str) -> str:
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f"{store_name}_{timestamp}.png"
 
+    # Service Account의 드라이브에 파일 생성 (parents 없이)
     file_metadata = {
         'name': filename,
-        'mimeType': 'image/png',
-        'parents': [GOOGLE_DRIVE_FOLDER_ID]  # 공유된 폴더에 업로드
+        'mimeType': 'image/png'
     }
 
     media = MediaIoBaseUpload(
         image_buffer,
         mimetype='image/png',
-        resumable=True
+        resumable=False,
+        chunksize=-1
     )
 
+    # 파일 생성
     file = service.files().create(
         body=file_metadata,
         media_body=media,
         fields='id'
     ).execute()
 
-    return file.get('id')
+    file_id = file.get('id')
+
+    # 파일을 공개로 설정하고 링크로 접근 가능하게 함
+    permission = {
+        'type': 'anyone',
+        'role': 'reader'
+    }
+    service.permissions().create(
+        fileId=file_id,
+        body=permission
+    ).execute()
+
+    # 파일을 사용자의 폴더로 복사 시도
+    try:
+        copied_file = service.files().copy(
+            fileId=file_id,
+            body={
+                'name': filename,
+                'parents': [GOOGLE_DRIVE_FOLDER_ID]
+            },
+            supportsAllDrives=True
+        ).execute()
+
+        # 복사 성공시 원본 삭제
+        service.files().delete(fileId=file_id).execute()
+        return copied_file.get('id')
+    except Exception as copy_error:
+        # 복사 실패시 원본 파일 ID 반환 (Service Account 드라이브에 있음)
+        print(f"폴더 복사 실패: {copy_error}")
+        return file_id
 
 

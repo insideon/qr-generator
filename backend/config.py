@@ -31,7 +31,7 @@ SERVICE_ACCOUNT_EMAIL = get_service_account_email()
 # 4. 폴더를 열고 URL에서 폴더 ID 복사
 #    예: https://drive.google.com/drive/folders/[여기가_폴더_ID]
 
-# 아래에 폴더 ID를 입력하세요
+# 아래에 폴더 ID를 입력하세요 (각자 자신의 폴더 ID로 변경)
 GOOGLE_DRIVE_FOLDER_ID = os.getenv('GOOGLE_DRIVE_FOLDER_ID', '')
 
 # 폴더 ID가 설정되지 않은 경우 경고
