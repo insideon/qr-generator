@@ -58,10 +58,11 @@ def upload_to_drive(image_buffer: BytesIO, store_name: str) -> str:
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f"{store_name}_{timestamp}.png"
 
-    # Service Account의 드라이브에 파일 생성 (parents 없이)
+    # 공유 폴더에 직접 파일 생성
     file_metadata = {
         'name': filename,
-        'mimeType': 'image/png'
+        'mimeType': 'image/png',
+        'parents': [GOOGLE_DRIVE_FOLDER_ID]  # 공유 폴더에 직접 생성
     }
 
     media = MediaIoBaseUpload(
@@ -71,42 +72,14 @@ def upload_to_drive(image_buffer: BytesIO, store_name: str) -> str:
         chunksize=-1
     )
 
-    # 파일 생성
+    # 파일 생성 (공유 폴더에 직접 생성하므로 storage quota 문제 없음)
     file = service.files().create(
         body=file_metadata,
         media_body=media,
-        fields='id'
+        fields='id',
+        supportsAllDrives=True
     ).execute()
 
-    file_id = file.get('id')
-
-    # 파일을 공개로 설정하고 링크로 접근 가능하게 함
-    permission = {
-        'type': 'anyone',
-        'role': 'reader'
-    }
-    service.permissions().create(
-        fileId=file_id,
-        body=permission
-    ).execute()
-
-    # 파일을 사용자의 폴더로 복사 시도
-    try:
-        copied_file = service.files().copy(
-            fileId=file_id,
-            body={
-                'name': filename,
-                'parents': [GOOGLE_DRIVE_FOLDER_ID]
-            },
-            supportsAllDrives=True
-        ).execute()
-
-        # 복사 성공시 원본 삭제
-        service.files().delete(fileId=file_id).execute()
-        return copied_file.get('id')
-    except Exception as copy_error:
-        # 복사 실패시 원본 파일 ID 반환 (Service Account 드라이브에 있음)
-        print(f"폴더 복사 실패: {copy_error}")
-        return file_id
+    return file.get('id')
 
 

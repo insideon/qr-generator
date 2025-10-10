@@ -5,6 +5,7 @@ pillow==11.0.0
 google-api-python-client==2.149.0
 google-auth==2.35.0
 python-multipart==0.0.12
+python-dotenv==1.0.0
 
 
 

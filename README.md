@@ -61,7 +61,7 @@ QR 코드를 Google Drive에 저장하려면 Service Account와 공유 폴더 �
 
 #### 1-2. Google Drive 폴더 설정
 
-⚠️ **중요**: Service Account는 자체 저장 공간이 없으므로 본인의 Drive 폴더를 공유해야 합니다.
+✅ **개인 Gmail 계정에서도 작동합니다!** 폴더를 Service Account와 공유하기만 하면 됩니다.
 
 1. **Google Drive에 접속** ([drive.google.com](https://drive.google.com/))
 2. **폴더 생성**:
@@ -77,10 +77,16 @@ QR 코드를 Google Drive에 저장하려면 Service Account와 공유 폴더 �
    - 브라우저 주소창의 URL 확인
    - 예: `https://drive.google.com/drive/folders/1abc123def456ghi789jkl`
    - **1abc123def456ghi789jkl** 부분이 폴더 ID입니다
-5. **폴더 ID 설정**:
-   - `backend/config.py` 파일 열기
-   - `GOOGLE_DRIVE_FOLDER_ID = ''` 부분을 찾아서 폴더 ID 입력
-   - 예: `GOOGLE_DRIVE_FOLDER_ID = '1abc123def456ghi789jkl'`
+5. **환경 변수 설정**:
+   - `backend/env.example` 파일을 복사하여 `.env` 파일 생성
+   ```bash
+   cd backend
+   cp env.example .env
+   ```
+   - `.env` 파일을 열어서 폴더 ID 입력
+   ```
+   GOOGLE_DRIVE_FOLDER_ID=1abc123def456ghi789jkl
+   ```
 
 ### 2. 백엔드 실행
 

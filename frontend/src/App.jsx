@@ -14,6 +14,8 @@ function App() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const [responseMessage, setResponseMessage] = useState('')
+  const [driveStatus, setDriveStatus] = useState('')
+  const [driveMessage, setDriveMessage] = useState('')
 
   const handleChange = (e) => {
     setFormData({
@@ -33,6 +35,8 @@ function App() {
       const response = await axios.post('/api/generate-qr', formData)
       setQrImage(`data:image/png;base64,${response.data.image_base64}`)
       setResponseMessage(response.data.message)
+      setDriveStatus(response.data.drive_status || 'success')
+      setDriveMessage(response.data.drive_message || '')
       setSuccess(true)
     } catch (err) {
       const errorDetail = err.response?.data?.detail
@@ -142,9 +146,26 @@ function App() {
       {qrImage && (
         <div className="result-container">
           {success && qrImage && (
-            <div className="success-message">
-              {responseMessage || "✅ QR 코드 생성 성공!"}
-            </div>
+            <>
+              <div className="success-message">
+                ✅ {responseMessage || "QR 코드가 성공적으로 생성되었습니다!"}
+              </div>
+
+              {driveMessage && driveStatus === 'success' && (
+                <div className="success-message">
+                  📁 {driveMessage}
+                </div>
+              )}
+
+              {driveMessage && driveStatus === 'warning' && (
+                <div className="warning-message">
+                  ⚠️ Google Drive 저장 실패
+                  <div style={{marginTop: '8px', fontSize: '13px', lineHeight: '1.5'}}>
+                    {driveMessage}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           <div className="qr-preview">
